@@ -10,6 +10,7 @@ namespace BiontTools
 		{
 
 				private static Dictionary<string,Dictionary<string,Func<object,object>>> filters = new Dictionary<string,Dictionary<string,Func<object,object>>> ();
+				private static Dictionary<string,Dictionary<string,Func<object,object[],object>>> filtersArguments = new Dictionary<string,Dictionary<string,Func<object,object[],object>>> ();
 
 				public static void Add (string filterName, Func<object,object> action, string filterTag = "")
 				{
@@ -28,6 +29,25 @@ namespace BiontTools
 
 	
 				}
+
+				public static void Add (string filterName, Func<object,object[],object> action, string filterTag = "")
+				{
+			
+						if (filterTag == "") {
+								filterTag = Guid.NewGuid ().ToString ();
+						}
+			
+			
+						Dictionary<string,Func<object,object[],object>> actionList = null;
+						if (filtersArguments.TryGetValue (filterName, out actionList)) {
+								actionList.Add (filterTag, action);
+						} else {
+								filtersArguments.Add (filterName, new Dictionary<string,Func<object,object[],object>> (){{filterTag,action}});
+						}
+			
+			
+				}
+
 
 				public static void Remove (string filterName, string filterTag)
 				{
@@ -55,7 +75,6 @@ namespace BiontTools
 						if (filters.TryGetValue (filterName, out actionList)) {
 
 								foreach (KeyValuePair<string, Func<object,object> > action in actionList) {
-//								foreach (Func<object,object> action in actionList) {
 
 										source = action.Value (source);
 								}
@@ -65,6 +84,25 @@ namespace BiontTools
 						}
 
 						return source;
+				}
+
+				public static object Apply (string filterName, object source, object[] arguments)
+				{
+			
+						Dictionary<string,Func<object,object[],object>> actionList = null;
+						if (filtersArguments.TryGetValue (filterName, out actionList)) {
+				
+								foreach (KeyValuePair<string, Func<object,object[],object> > action in actionList) {
+										//								foreach (Func<object,object> action in actionList) {
+					
+										source = action.Value (source, arguments);
+								}
+				
+						} else {
+								Debug.Log ("There were no filters added for " + filterName);
+						}
+			
+						return Apply (filterName, source);
 				}
 		}
 
