@@ -26,8 +26,6 @@ public class FilterBehaviour : MonoBehaviour
 		 		 */ 
 				Filters.Add ("test-string", (filterString) => {
 						// You need to cast from object to your actual type
-//						string tempString = (string)filterString; 
-
 						return (string)filterString + " ...and I love it";
 				});
 				
