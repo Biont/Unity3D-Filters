@@ -9,7 +9,13 @@ public static class Filters
 		private static Dictionary<string,Dictionary<string,Func<object,object>>> filters = new Dictionary<string,Dictionary<string,Func<object,object>>> ();
 		private static Dictionary<string,Dictionary<string,Func<object,object[],object>>> filtersArguments = new Dictionary<string,Dictionary<string,Func<object,object[],object>>> ();
 
-		public static void Add (string filterName, Func<object,object> action, string filterTag = "")
+		/// <summary>
+		/// Adds a filter with no additional arguments. Returns the filterTag
+		/// </summary>
+		/// <param name="filterName">Filter name.</param>
+		/// <param name="action">Action.</param>
+		/// <param name="filterTag">Filter tag.</param>
+		public static string Add (string filterName, Func<object,object> action, string filterTag = "")
 		{
 
 				if (filterTag == "") {
@@ -23,11 +29,16 @@ public static class Filters
 				} else {
 						filters.Add (filterName, new Dictionary<string,Func<object,object>> (){{filterTag,action}});
 				}
-
+				return filterTag;
 	
 		}
-
-		public static void Add (string filterName, Func<object,object[],object> action, string filterTag = "")
+		/// <summary>
+		/// Adds a filter with additional arguments. Returns the filterTag
+		/// </summary>
+		/// <param name="filterName">Filter name.</param>
+		/// <param name="action">Action.</param>
+		/// <param name="filterTag">Filter tag.</param>
+		public static string Add (string filterName, Func<object,object[],object> action, string filterTag = "")
 		{
 			
 				if (filterTag == "") {
@@ -41,11 +52,27 @@ public static class Filters
 				} else {
 						filtersArguments.Add (filterName, new Dictionary<string,Func<object,object[],object>> (){{filterTag,action}});
 				}
+				return filterTag;
 			
 			
 		}
+		/// <summary>
+		/// Remove all Filters for this filterName
+		/// </summary>
+		/// <param name="filterName">Filter name.</param>
+		public static void Remove (string filterName)
+		{
+			
+				filters.Remove (filterName);
+				filtersArguments.Remove (filterName);
 
+		}
 
+		/// <summary>
+		/// Remove the specified Filter by filterTag.
+		/// </summary>
+		/// <param name="filterName">Filter name.</param>
+		/// <param name="filterTag">Filter tag.</param>
 		public static void Remove (string filterName, string filterTag)
 		{
 				Dictionary<string,Func<object,object>> actionList = null;
@@ -53,18 +80,28 @@ public static class Filters
 
 						if (actionList.Remove (filterTag)) {
 								Debug.Log (filterTag + " removed successfully from Filter " + filterName);
-						} else {
-								Debug.Log (filterTag + " not found in " + filterName);
-					
 						}
 								
-				} else {
-						Debug.Log ("Filter " + filterName + " could not be foundr ");
-				
+				}
+
+				Dictionary<string,Func<object,object[],object>> actionListArguments = null;
+		
+				if (filtersArguments.TryGetValue (filterName, out actionListArguments)) {
+			
+						if (actionListArguments.Remove (filterTag)) {
+								Debug.Log (filterTag + " removed successfully from Filter " + filterName);
+						}
+			
 				}
 		}
 
-	
+
+
+		/// <summary>
+		/// Applies a Filter
+		/// </summary>
+		/// <param name="filterName">Filter name.</param>
+		/// <param name="source">Source.</param>
 		public static object Apply (string filterName, object source)
 		{
 
@@ -83,6 +120,12 @@ public static class Filters
 				return source;
 		}
 
+		/// <summary>
+		/// Applies a Filter with additional arguments
+		/// </summary>
+		/// <param name="filterName">Filter name.</param>
+		/// <param name="source">Source.</param>
+		/// <param name="arguments">Arguments.</param>
 		public static object Apply (string filterName, object source, object[] arguments)
 		{
 			
