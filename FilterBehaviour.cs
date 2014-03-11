@@ -16,7 +16,7 @@ public class FilterBehaviour : MonoBehaviour
 				 * 
 		 		 */
 				Filters.Add ("test-string", (filterString) => {
-						return "The filter works!";
+						return "Filtered: " + (string)filterString;
 				}, "string-override");
 
 
@@ -27,9 +27,22 @@ public class FilterBehaviour : MonoBehaviour
 						// You need to cast from object to your actual type
 						return (string)filterString + " ...and I love it";
 				});
+
+
+				/* It's also possible to add a Filter at a specific position. 
+				 * Probably the most common use case is adding a high priority filter
+				 * at the very beginning of the filter list.
+				 * 
+				 * So let's add a filter that changes the input string before any other operation takes place
+				 * By setting the optional priority argument to 0
+				 * 
+		 		 */
+				Filters.Add ("test-string", (filterString) => {
+						return "We replaced the entire string";
+				}, null, 0);
 				
 
-				string testString = "This is the unfiltered string";
+				string testString = "This is our string";
 
 
 

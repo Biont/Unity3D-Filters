@@ -2,12 +2,14 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Com.Github.DataStructures;
+
 
 public static class Filters
 {
 
-		private static Dictionary<string,Dictionary<string,Func<object,object>>> filters = new Dictionary<string,Dictionary<string,Func<object,object>>> ();
-		private static Dictionary<string,Dictionary<string,Func<object,object[],object>>> filtersArguments = new Dictionary<string,Dictionary<string,Func<object,object[],object>>> ();
+		private static Dictionary<string,OrderedDictionary<string,Func<object,object>>> filters = new Dictionary<string,OrderedDictionary<string,Func<object,object>>> ();
+		private static Dictionary<string,OrderedDictionary<string,Func<object,object[],object>>> filtersArguments = new Dictionary<string,OrderedDictionary<string,Func<object,object[],object>>> ();
 
 		/// <summary>
 		/// Adds a filter with no additional arguments. Returns the filterTag
@@ -15,19 +17,33 @@ public static class Filters
 		/// <param name="filterName">Filter name.</param>
 		/// <param name="action">Action.</param>
 		/// <param name="filterTag">Filter tag.</param>
-		public static string Add (string filterName, Func<object,object> action, string filterTag = "")
+		public static string Add (string filterName, Func<object,object> action, string filterTag = null, int? priority=null)
 		{
 
-				if (filterTag == "") {
+				if (filterTag == null) {
 						filterTag = Guid.NewGuid ().ToString ();
 				}
-			
 
-				Dictionary<string,Func<object,object>> actionList = null;
-				if (filters.TryGetValue (filterName, out actionList)) {
-						actionList.Add (filterTag, action);
+				int dictPriority;
+				if (priority != null) {
+						dictPriority = (int)priority;
 				} else {
-						filters.Add (filterName, new Dictionary<string,Func<object,object>> (){{filterTag,action}});
+						dictPriority = filters.Count;
+			
+				}
+
+				KeyValuePair<string, Func<object, object>> data = new KeyValuePair<string, Func<object, object>> (filterTag, action);
+
+
+				if (filters.ContainsKey (filterName)) {
+						if (filters [filterName].Count >= dictPriority) {
+								filters [filterName].Insert (dictPriority, data);
+						} else {
+								filters [filterName].Add (data);
+				
+						}
+				} else {
+						filters.Add (filterName, new OrderedDictionary<string,Func<object,object>> (){{filterTag,action}});
 				}
 				return filterTag;
 	
@@ -38,19 +54,33 @@ public static class Filters
 		/// <param name="filterName">Filter name.</param>
 		/// <param name="action">Action.</param>
 		/// <param name="filterTag">Filter tag.</param>
-		public static string Add (string filterName, Func<object,object[],object> action, string filterTag = "")
+		public static string Add (string filterName, Func<object,object[],object> action, string filterTag = "", int? priority=null)
 		{
 			
 				if (filterTag == "") {
 						filterTag = Guid.NewGuid ().ToString ();
 				}
-			
-			
-				Dictionary<string,Func<object,object[],object>> actionList = null;
-				if (filtersArguments.TryGetValue (filterName, out actionList)) {
-						actionList.Add (filterTag, action);
+
+				int dictPriority;
+				if (priority != null) {
+						dictPriority = (int)priority;
 				} else {
-						filtersArguments.Add (filterName, new Dictionary<string,Func<object,object[],object>> (){{filterTag,action}});
+						dictPriority = filtersArguments.Count;
+			
+				}
+			
+				KeyValuePair<string, Func<object,object[], object>> data = new KeyValuePair<string, Func<object,object[], object>> (filterTag, action);
+		
+			
+				if (filtersArguments.ContainsKey (filterName)) {
+						if (filtersArguments [filterName].Count >= dictPriority) {
+								filtersArguments [filterName].Insert (dictPriority, data);
+						} else {
+								filtersArguments [filterName].Add (data);
+				
+						}
+				} else {
+						filtersArguments.Add (filterName, new OrderedDictionary<string,Func<object,object[],object>> (){{filterTag,action}});
 				}
 				return filterTag;
 			
@@ -75,20 +105,18 @@ public static class Filters
 		/// <param name="filterTag">Filter tag.</param>
 		public static void Remove (string filterName, string filterTag)
 		{
-				Dictionary<string,Func<object,object>> actionList = null;
-				if (filters.TryGetValue (filterName, out actionList)) {
+				if (filters.ContainsKey (filterName)) {
 
-						if (actionList.Remove (filterTag)) {
+						if (filters [filterName].Remove (filterTag)) {
 								Debug.Log (filterTag + " removed successfully from Filter " + filterName);
 						}
 								
 				}
 
-				Dictionary<string,Func<object,object[],object>> actionListArguments = null;
 		
-				if (filtersArguments.TryGetValue (filterName, out actionListArguments)) {
+				if (filtersArguments.ContainsKey (filterName)) {
 			
-						if (actionListArguments.Remove (filterTag)) {
+						if (filtersArguments [filterName].Remove (filterTag)) {
 								Debug.Log (filterTag + " removed successfully from Filter " + filterName);
 						}
 			
@@ -105,10 +133,9 @@ public static class Filters
 		public static object Apply (string filterName, object source)
 		{
 
-				Dictionary<string,Func<object,object>> actionList = null;
-				if (filters.TryGetValue (filterName, out actionList)) {
+				if (filters.ContainsKey (filterName)) {
 
-						foreach (KeyValuePair<string, Func<object,object> > action in actionList) {
+						foreach (KeyValuePair<string, Func<object,object> > action in filters[filterName]) {
 
 								source = action.Value (source);
 						}
@@ -129,11 +156,9 @@ public static class Filters
 		public static object Apply (string filterName, object source, object[] arguments)
 		{
 			
-				Dictionary<string,Func<object,object[],object>> actionList = null;
-				if (filtersArguments.TryGetValue (filterName, out actionList)) {
+				if (filtersArguments.ContainsKey (filterName)) {
 				
-						foreach (KeyValuePair<string, Func<object,object[],object> > action in actionList) {
-								//								foreach (Func<object,object> action in actionList) {
+						foreach (KeyValuePair<string, Func<object,object[],object> > action in filtersArguments[filterName]) {
 					
 								source = action.Value (source, arguments);
 						}
