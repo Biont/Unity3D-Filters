@@ -108,7 +108,7 @@ public static class Filters
 				if (filters.ContainsKey (filterName)) {
 
 						if (filters [filterName].Remove (filterTag)) {
-								Debug.Log (filterTag + " removed successfully from Filter " + filterName);
+//								Debug.Log (filterTag + " removed successfully from Filter " + filterName);
 						}
 								
 				}
@@ -117,7 +117,7 @@ public static class Filters
 				if (filtersArguments.ContainsKey (filterName)) {
 			
 						if (filtersArguments [filterName].Remove (filterTag)) {
-								Debug.Log (filterTag + " removed successfully from Filter " + filterName);
+//								Debug.Log (filterTag + " removed successfully from Filter " + filterName);
 						}
 			
 				}
@@ -141,7 +141,7 @@ public static class Filters
 						}
 
 				} else {
-						Debug.Log ("There were no filters added for " + filterName);
+//						Debug.Log ("There were no filters added for " + filterName);
 				}
 
 				return source;
@@ -164,7 +164,7 @@ public static class Filters
 						}
 				
 				} else {
-						Debug.Log ("There were no filters added for " + filterName);
+//						Debug.Log ("There were no filters added for " + filterName);
 				}
 			
 				return Apply (filterName, source);
