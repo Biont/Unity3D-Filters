@@ -4,14 +4,26 @@ using System.Collections;
 using System.Collections.Generic;
 using Com.Github.DataStructures;
 
+using NoParamFilterDict = System.Collections.Generic.Dictionary<string,Com.Github.DataStructures.OrderedDictionary<string,System.Func<object,object>>> ;
+using OneParamFilterDict = System.Collections.Generic.Dictionary<string,Com.Github.DataStructures.OrderedDictionary<string,System.Func<object,object,object>>> ;
+using TwoParamFilterDict = System.Collections.Generic.Dictionary<string,Com.Github.DataStructures.OrderedDictionary<string,System.Func<object,object,object,object>>> ;
+
+using NoParamActionDict = System.Collections.Generic.Dictionary<string,Com.Github.DataStructures.OrderedDictionary<string,System.Action>> ;
+using OneParamActionDict = System.Collections.Generic.Dictionary<string,Com.Github.DataStructures.OrderedDictionary<string,System.Action<object>>> ;
+using TwoParamActionDict = System.Collections.Generic.Dictionary<string,Com.Github.DataStructures.OrderedDictionary<string,System.Action<object,object>>> ;
+using ThreeParamActionDict = System.Collections.Generic.Dictionary<string,Com.Github.DataStructures.OrderedDictionary<string,System.Action<object,object,object>>> ;
 
 public class HookCollection
 {
 
-		private Dictionary<string,OrderedDictionary<string,Func<object,object>>> filters = new Dictionary<string,OrderedDictionary<string,Func<object,object>>> ();
-		private Dictionary<string,OrderedDictionary<string,Action>> actions = new Dictionary<string,OrderedDictionary<string,Action>> ();
-		private Dictionary<string,OrderedDictionary<string,Action<object>>> actions1 = new Dictionary<string,OrderedDictionary<string,Action<object>>> ();
-//	private Dictionary<string,OrderedDictionary<string,Func<object,object[],object>>> filtersArguments = new Dictionary<string,OrderedDictionary<string,Func<object,object[],object>>> ();
+		private NoParamFilterDict filters1 = new NoParamFilterDict ();
+		private OneParamFilterDict filters2 = new OneParamFilterDict ();
+		private TwoParamFilterDict filters3 = new TwoParamFilterDict ();
+		// Actions (No return value)
+		private NoParamActionDict actions = new NoParamActionDict ();
+		private OneParamActionDict actions1 = new OneParamActionDict ();
+		private TwoParamActionDict actions2 = new TwoParamActionDict ();
+		private ThreeParamActionDict actions3 = new ThreeParamActionDict ();
 
 
 		/// <summary>
@@ -27,30 +39,103 @@ public class HookCollection
 						filterTag = Guid.NewGuid ().ToString ();
 				}
 		
-				int dictPriority;
-				if (priority != null) {
-						dictPriority = (int)priority;
-				} else {
-						dictPriority = filters.Count;
-			
-				}
+				int dictPriority = GetPriority <NoParamFilterDict> (priority, filters1);
+		
 		
 				KeyValuePair<string, Func<object, object>> data = new KeyValuePair<string, Func<object, object>> (filterTag, action);
 		
 		
-				if (filters.ContainsKey (filterName)) {
-						if (filters [filterName].Count >= dictPriority) {
-								filters [filterName].Insert (dictPriority, data);
+				if (filters1.ContainsKey (filterName)) {
+						if (filters1 [filterName].Count >= dictPriority) {
+								filters1 [filterName].Insert (dictPriority, data);
 						} else {
-								filters [filterName].Add (data);
+								filters1 [filterName].Add (data);
 				
 						}
 				} else {
-						filters.Add (filterName, new OrderedDictionary<string,Func<object,object>> (){{filterTag,action}});
+						filters1.Add (filterName, new OrderedDictionary<string,Func<object,object>> (){{filterTag,action}});
 				}
 				return filterTag;
 		
 		}
+
+		/// <summary>
+		/// Adds a filter with no additional arguments. Returns the filterTag
+		/// </summary>
+		/// <param name="filterName">Filter name.</param>
+		/// <param name="action">Action.</param>
+		/// <param name="filterTag">Filter tag.</param>
+		public string AddFilter (string filterName, Func<object,object,object> action, string filterTag = null, int? priority=null)
+		{
+		
+				if (filterTag == null) {
+						filterTag = Guid.NewGuid ().ToString ();
+				}
+		
+				int dictPriority = GetPriority <OneParamFilterDict> (priority, filters2);
+				
+		
+				KeyValuePair<string, Func<object, object,object>> data = new KeyValuePair<string, Func<object, object,object>> (filterTag, action);
+		
+		
+				if (filters2.ContainsKey (filterName)) {
+						if (filters2 [filterName].Count >= dictPriority) {
+								filters2 [filterName].Insert (dictPriority, data);
+						} else {
+								filters2 [filterName].Add (data);
+				
+						}
+				} else {
+						filters2.Add (filterName, new OrderedDictionary<string,Func<object,object,object>> (){{filterTag,action}});
+				}
+				return filterTag;
+		
+		}
+
+		/// <summary>
+		/// Adds a filter with no additional arguments. Returns the filterTag
+		/// </summary>
+		/// <param name="filterName">Filter name.</param>
+		/// <param name="action">Action.</param>
+		/// <param name="filterTag">Filter tag.</param>
+		public string AddFilter (string filterName, Func<object,object,object,object> action, string filterTag = null, int? priority=null)
+		{
+		
+				if (filterTag == null) {
+						filterTag = Guid.NewGuid ().ToString ();
+				}
+		
+				int dictPriority = GetPriority <TwoParamFilterDict> (priority, filters3);
+
+		
+				KeyValuePair<string, Func<object, object,object,object>> data = new KeyValuePair<string, Func<object, object,object,object>> (filterTag, action);
+		
+		
+				if (filters3.ContainsKey (filterName)) {
+						if (filters3 [filterName].Count >= dictPriority) {
+								filters3 [filterName].Insert (dictPriority, data);
+						} else {
+								filters3 [filterName].Add (data);
+				
+						}
+				} else {
+						filters3.Add (filterName, new OrderedDictionary<string,Func<object,object,object,object>> (){{filterTag,action}});
+				}
+				return filterTag;
+		
+		}
+
+		private int GetPriority<T> (int? priority, T collection) where T : IDictionary
+		{
+				if (priority != null) {
+						return (int)priority;
+				} else {
+						return collection.Count;
+			
+				}
+		}
+
+
 
 		public string AddAction (string actionName, Action action, string actionTag = null, int? priority=null)
 		{
@@ -115,44 +200,7 @@ public class HookCollection
 				return actionTag;
 		
 		}
-		//	/// <summary>
-		//	/// Adds a filter with additional arguments. Returns the filterTag
-//	/// </summary>
-//	/// <param name="filterName">Filter name.</param>
-//	/// <param name="action">Action.</param>
-//	/// <param name="filterTag">Filter tag.</param>
-//	public string Add (string filterName, Func<object,object[],object> action, string filterTag = "", int? priority=null)
-//	{
-//		
-//		if (filterTag == "") {
-//			filterTag = Guid.NewGuid ().ToString ();
-//		}
-//		
-//		int dictPriority;
-//		if (priority != null) {
-//			dictPriority = (int)priority;
-//		} else {
-//			dictPriority = filtersArguments.Count;
-//			
-//		}
-//		
-//		KeyValuePair<string, Func<object,object[], object>> data = new KeyValuePair<string, Func<object,object[], object>> (filterTag, action);
-//		
-//		
-//		if (filtersArguments.ContainsKey (filterName)) {
-//			if (filtersArguments [filterName].Count >= dictPriority) {
-//				filtersArguments [filterName].Insert (dictPriority, data);
-//			} else {
-//				filtersArguments [filterName].Add (data);
-//				
-//			}
-//		} else {
-//			filtersArguments.Add (filterName, new OrderedDictionary<string,Func<object,object[],object>> (){{filterTag,action}});
-//		}
-//		return filterTag;
-//		
-//		
-//	}
+
 		/// <summary>
 		/// Remove all Filters for this filterName
 		/// </summary>
@@ -160,7 +208,7 @@ public class HookCollection
 		public void RemoveFilter (string filterName)
 		{
 		
-				filters.Remove (filterName);
+				filters1.Remove (filterName);
 //		filtersArguments.Remove (filterName);
 		
 		}
@@ -172,9 +220,9 @@ public class HookCollection
 		/// <param name="filterTag">Filter tag.</param>
 		public void RemoveFilter (string filterName, string filterTag)
 		{
-				if (filters.ContainsKey (filterName)) {
+				if (filters1.ContainsKey (filterName)) {
 			
-						if (filters [filterName].Remove (filterTag)) {
+						if (filters1 [filterName].Remove (filterTag)) {
 								//								Debug.Log (filterTag + " removed successfully from Filter " + filterName);
 						}
 			
@@ -200,11 +248,33 @@ public class HookCollection
 		public object ApplyFilters (string filterName, object source)
 		{
 		
-				if (filters.ContainsKey (filterName)) {
+				if (filters1.ContainsKey (filterName)) {
 			
-						foreach (KeyValuePair<string, Func<object,object> > action in filters[filterName]) {
+						foreach (KeyValuePair<string, Func<object,object> > action in filters1[filterName]) {
 				
 								source = action.Value (source);
+						}
+			
+				} else {
+						//						Debug.Log ("There were no filters added for " + filterName);
+				}
+		
+				return source;
+		}
+
+		/// <summary>
+		/// Applies a Filter with one extra argument
+		/// </summary>
+		/// <param name="filterName">Filter name.</param>
+		/// <param name="source">Source.</param>
+		public object ApplyFilters (string filterName, object source, object param1)
+		{
+		
+				if (filters2.ContainsKey (filterName)) {
+			
+						foreach (KeyValuePair<string, Func<object,object,object> > action in filters2[filterName]) {
+				
+								source = action.Value (source, param1);
 						}
 			
 				} else {
@@ -296,6 +366,33 @@ public static class Hooks
 				return hooks.AddFilter (filterName, action, filterTag, priority);
 	
 		}
+
+		/// <summary>
+		/// Adds a filter with no additional arguments. Returns the filterTag
+		/// </summary>
+		/// <param name="filterName">Filter name.</param>
+		/// <param name="action">Action.</param>
+		/// <param name="filterTag">Filter tag.</param>
+		public static string AddFilter (string filterName, Func<object,object,object> action, string filterTag = null, int? priority=null)
+		{
+		
+				return hooks.AddFilter (filterName, action, filterTag, priority);
+		
+		}
+
+		/// <summary>
+		/// Adds a filter with no additional arguments. Returns the filterTag
+		/// </summary>
+		/// <param name="filterName">Filter name.</param>
+		/// <param name="action">Action.</param>
+		/// <param name="filterTag">Filter tag.</param>
+		public static string AddFilter (string filterName, Func<object,object,object,object> action, string filterTag = null, int? priority=null)
+		{
+		
+				return hooks.AddFilter (filterName, action, filterTag, priority);
+		
+		}
+
 //		/// <summary>
 //		/// Adds a filter with additional arguments. Returns the filterTag
 //		/// </summary>
